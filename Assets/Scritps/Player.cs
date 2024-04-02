@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.InputSystem;
 
 public class Player : MonoBehaviour
 {
@@ -15,11 +16,14 @@ public class Player : MonoBehaviour
      public BarraDeVida LifeController;
     private bool isCollidingEnemy = false;
     public Contador contador;
-
+    public float _xMovement;
+  
+    public bool _jump;
     public LayerMask collisionMask;
     public int Colore;
+   
 
-    private float Horizontal; 
+
     private void Awake()
     {
         _comprigidbody2D = GetComponent<Rigidbody2D>();
@@ -31,34 +35,15 @@ public class Player : MonoBehaviour
     {
 
       
-        Horizontal = Input.GetAxisRaw("Horizontal");
-        _comprigidbody2D.velocity = new Vector2(Horizontal * speedX, _comprigidbody2D.velocity.y);
-
-        if (Input.GetKeyDown(KeyCode.Space) && jumpsRemaining > 0)
-        {
-      
-            _comprigidbody2D.velocity = new Vector2(_comprigidbody2D.velocity.x, JumpingPower);
-            jumpsRemaining = jumpsRemaining - 1;
-
-  
-            if (jumpsRemaining == 0)
-            {
-                _comprigidbody2D.velocity = new Vector2(_comprigidbody2D.velocity.x, JumpingPower);
-            }
-        }
+        
+        _comprigidbody2D.velocity = new Vector2(_xMovement * speedX, _comprigidbody2D.velocity.y);
 
 
-        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, raycastDistance, collisionMask);
-        if (hit.collider != null)
-        {
-            jumpsRemaining = maxJumps;
-        }
-
-        if(Colore == 1)
+        if (Colore == 1)
         {
             _compspriteRenderer.color = Color.green;
         }
-        else if(Colore == 2)
+        else if (Colore == 2)
         {
             _compspriteRenderer.color = Color.red;
         }
@@ -66,16 +51,19 @@ public class Player : MonoBehaviour
         {
             _compspriteRenderer.color = Color.blue;
         }
-        else if(Colore == 4)
+        else if (Colore == 4)
         {
             _compspriteRenderer.color = Color.yellow;
         }
-        else if(Colore == 5)
+        else if (Colore == 5)
         {
             _compspriteRenderer.color = Color.cyan;
         }
 
-        LifeController.Vidas();
+
+
+
+        LifeController.UpdateLife();
 
     }
     void OnTriggerEnter2D(Collider2D other)
@@ -103,7 +91,47 @@ public class Player : MonoBehaviour
         Gizmos.color = Color.red;
         Gizmos.DrawRay(transform.position, Vector2.down * raycastDistance);
     }
+    public void OnMovement(InputAction.CallbackContext context)
+    {
+        _xMovement = context.ReadValue<float>();
+       
+    }
+    public void OnJump(InputAction.CallbackContext context)
+    {
 
-    
+        if (context.performed && jumpsRemaining > 0)
+        {
+
+            _comprigidbody2D.velocity = new Vector2(_comprigidbody2D.velocity.x, JumpingPower);
+            jumpsRemaining = jumpsRemaining - 1;
+
+
+            if (jumpsRemaining == 0)
+            {
+                _comprigidbody2D.velocity = new Vector2(_comprigidbody2D.velocity.x, JumpingPower);
+            }
+        }
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, Vector2.down, raycastDistance, collisionMask);
+        if (hit.collider != null)
+        { 
+            jumpsRemaining = maxJumps;
+        }
+    }
+    public void CambioColor(InputAction.CallbackContext context)
+    {
+        if (context.performed && Colore < 5)
+        {
+            Colore = Colore + 1;
+        }
+
+    }
+    public void CambioColorNeg(InputAction.CallbackContext context)
+    {
+        if (context.performed && Colore > 0)
+        {
+            Colore = Colore - 1;
+        }
+
+    }
 }
 
